@@ -19,7 +19,7 @@ module.exports = {
     path: config.build.assetsRoot,
     filename: '[name].js',
     publicPath: process.env.NODE_ENV === 'production'
-      ? 'anchor'
+      ? '/anchor/'
       : config.dev.assetsPublicPath
   },
   resolve: {
