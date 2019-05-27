@@ -1,22 +1,25 @@
 <template>
   <div id="app">
-    <HelloWorld/>
+    <!-- <HelloWorld/> -->
+    <SingleTree/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
+import HelloWorld from './components/HelloWorld';
+import SingleTree from './components/SingleTree';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    SingleTree
   }
 }
 </script>
 
 <style>
 #app {
+  padding: 10px;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
