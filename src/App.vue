@@ -1,18 +1,18 @@
 <template>
   <div id="app">
     <!-- <HelloWorld/> -->
-    <SingleTree/>
+    <List/>
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld';
-import SingleTree from './components/SingleTree';
+import List from './components/List';
 
 export default {
   name: 'App',
   components: {
-    SingleTree
+    List
   }
 }
 </script>
