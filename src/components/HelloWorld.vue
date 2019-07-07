@@ -26,18 +26,7 @@ export default {
     created() {
     },
     mounted() {
-      this.$refs.anchor.addEventListener('scroll', (e) => {
-        let scrollTop = e.target.scrollTop;
-        if (scrollTop < this.$refs.two.offsetTop) {
-          this.activeName = 'one';
-        } else if (scrollTop >= this.$refs.two.offsetTop && scrollTop < this.$refs.three.offsetTop) {
-          this.activeName = 'two';
-        } else if (scrollTop >= this.$refs.three.offsetTop && scrollTop < this.$refs.four.offsetTop) {
-          this.activeName = 'three';
-        } else {
-          this.activeName = 'four';
-        }
-      });
+      this.$refs.anchor.addEventListener('scroll', this.handleScroll);
     },
     methods: {
         changeNav (item) {
@@ -49,6 +38,18 @@ export default {
                 behavior: "smooth"
               });
             });
+        },
+        handleScroll (e) {
+          let scrollTop = e.target.scrollTop;
+          if (scrollTop < this.$refs.two.offsetTop) {
+            this.activeName = 'one';
+          } else if (scrollTop >= this.$refs.two.offsetTop && scrollTop < this.$refs.three.offsetTop) {
+            this.activeName = 'two';
+          } else if (scrollTop >= this.$refs.three.offsetTop && scrollTop < this.$refs.four.offsetTop) {
+            this.activeName = 'three';
+          } else {
+            this.activeName = 'four';
+          }
         }
     }
 }

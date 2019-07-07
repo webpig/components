@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <!-- <HelloWorld/> -->
-    <List/>
+    <HelloWorld/>
+    <!-- <List/> -->
   </div>
 </template>
 
@@ -12,7 +12,7 @@ import List from './components/List';
 export default {
   name: 'App',
   components: {
-    List
+    HelloWorld
   }
 }
 </script>
