@@ -1,32 +1,58 @@
 <template>
   <div id="app">
-    <HelloWorld/>
+    <!-- <HelloWorld/> -->
     <!-- <List/> -->
+    <Sku :specificationList="specificationList" :addSpecificationName="addSpecificationName" :form="form"/>
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld';
 import List from './components/List';
+import Sku from './components/Sku';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    Sku
+  },
+  data () {
+    return {
+      specificationList: [{
+        name: '尺寸',
+        values: []
+      }, {
+        name: '颜色',
+        values: []
+      }],
+      form: {
+        specificationName: ''
+      }
+    }
+  },
+  methods: {
+    addSpecificationName () {
+      this.specificationList.push({
+        name: this.form.specificationName,
+        values: []
+      });
+    },
   }
 }
 </script>
 
 <style>
-#app {
+/* #app {
   padding: 10px;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  /* margin-top: 60px; */
   height: 100vh;
   overflow: hidden;
+} */
+#app {
+  padding: 30px;
 }
 </style>
