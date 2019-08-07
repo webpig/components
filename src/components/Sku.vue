@@ -8,7 +8,7 @@
                 <div class="specification-item border-top" @click="showAddModal">+ 新增规格名</div>
             </div>
         </div>
-        <div class="add-value" v-if="isShowAddSpecificationValueBtn">+增加规格值</div>
+        <div class="add-value" v-if="isShowAddSpecificationValueBtn" @click="clickAddSpecificatioValueBtn">+增加规格值</div>
         <el-dialog title="新增规格名" :visible.sync="isShowAddModal" width="30%">
             <el-form :inline="true" :model="form" ref="form">
                 <el-form-item
@@ -26,31 +26,51 @@
                 <el-button type="primary" @click="confirmAdd('form')">确 定</el-button>
             </div>
         </el-dialog>
+        <div class="value-select" v-if="isClickedAddValueBtn && !isClickedSelectBox">
+            <div class="select-area">
+                <div class="title">选择{{currSelectedSpecificationName || '规格值'}}</div>
+                <div class="empty-tip" v-if="specificationValues.length === 0">暂无规格值！请输入...</div>
+                <div class="checkbox-container" v-if="specificationValues.length">
+                    <el-checkbox v-model="checkAll" @change="handleCheckAllChange" class="checkall">全选</el-checkbox>
+                    <el-checkbox-group v-model="currSelectedSpecificationValues" @change="handleCheckedValuesChange" style="margin-bottom: 30px">
+                        <el-checkbox v-for="item in specificationValues" :label="item" :key="item" class="checkbox">{{item}}</el-checkbox>
+                    </el-checkbox-group>
+                </div>
+                <div style="display:flex">
+                    <div class="tags-wrap">
+                        <div class="tags-item" v-for="item in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn">+</div></div>
+                        <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" />
+                    </div>
+                    <el-button type="primary" :disabled="tempSpecificationValues.length === 0 && !specificationValue " @click="addSpecificatioValue" style="height: 40px">增加规格值</el-button>
+                </div>
+            </div>
+            <div class="btn-row">
+                <el-button @click="cancelSelectSpecificatioValue">取消</el-button>
+                <el-button type="primary" :disabled="currSelectedSpecificationValues.length === 0">选好了</el-button>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 export default {
     props: {
-        'specificationList': Object,
+        'specificationList': Array,
         'addSpecificationName': Function,
         'form': Object
     },
     data () {
         return {
             isClickedSelectBox: false,
+            isClickedAddValueBtn: false,
             isShowAddModal: false,
             currSelectedSpecificationName: '',
-            // form: {
-            //     specificationName: '',
-            // },
-            // specificationList: [{
-            //     name: '尺寸',
-            //     values: []
-            // }, {
-            //     name: '颜色',
-            //     values: []
-            // }]
+            checkAll: false,
+            specificationValue: '',
+            specificationValues: [],
+            tempSpecificationValues: [],
+            currSelectedSpecificationValues: [],
+            isShowValuesBox: false
         }
     },
     created() {
@@ -58,7 +78,7 @@ export default {
     },
     computed: {
         isShowAddSpecificationValueBtn () {
-            return !!this.currSelectedSpecificationName && !this.isClickedSelectBox;
+            return !!this.currSelectedSpecificationName && !this.isClickedSelectBox && !this.isClickedAddValueBtn;
         }
     },
     methods: {
@@ -88,6 +108,40 @@ export default {
         selectSpecificationName (specificationName) {
             this.currSelectedSpecificationName = specificationName;
             this.isClickedSelectBox = false;
+        },
+        clickAddSpecificatioValueBtn () {
+            this.isClickedAddValueBtn = true;
+        },
+        cancelSelectSpecificatioValue () {
+            this.isClickedAddValueBtn = false;
+            this.specificationValue = '';
+        }, 
+        addSpecificatioValue () {
+            if (this.specificationValue && !this.isShowValuesBox) {
+                this.tempSpecificationValues.push(this.specificationValue);
+            }
+            this.specificationValues = this.specificationValues.concat(this.tempSpecificationValues);
+
+            this.specificationValue = '';
+            this.tempSpecificationValues = [];
+        },
+        handleCheckAllChange (val) {
+            this.currSelectedSpecificationValues = val ? this.specificationValues : [];
+        },
+        handleCheckedValuesChange (val) {
+            let checkedCount = val.length;
+            this.checkAll = checkedCount === this.specificationValues.length;
+        },
+        focus () {
+
+        },
+        keyEnter () {
+            this.tempSpecificationValues.push(this.specificationValue);
+            this.specificationValue = '';
+            console.log(this.specificationValue, this.tempSpecificationValues)
+        },
+        clickValuesBox () {
+            // this.
         }
     }
 }
@@ -97,7 +151,47 @@ export default {
 
 @border-color: #d8d8d8;
 @theme-color: #0486FE;
-
+.tags-wrap {
+    width: 424px;
+    padding: 6px 10px;
+    min-height: 40px;
+    box-sizing: border-box;
+    border: 1px solid @border-color;
+    margin-right: 20px;
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    .tags-item  {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        height: 24px;
+        border-radius: 24px;
+        border: 1px solid #A3D0FD;
+        color: @theme-color;
+        font-size: 12px;
+        background: #F2F6FC;
+        margin-right: 12px;
+        margin-bottom: 12px;
+        font-weight: bold;
+        .delete-btn {
+            font-size: 16px;
+            color: #A3D0FD;
+            transform: rotate(45deg);
+            margin-left: 8px;
+        }
+    }
+    .value-input {
+        background: none;  
+        outline: none;  
+        border: 0px;
+        height: 24px;
+        width: 240px;
+        &.smaller-width {
+            width: 80px;
+        }
+    }
+}
 .select-container {
     position: relative;
     .select-box {
@@ -157,7 +251,7 @@ export default {
                     font-size: 20px;
                 }
             }
-            &.empty {
+            &.empty, &:hover {
                 background: #F2F6FC;
             }
         }
@@ -168,6 +262,77 @@ export default {
     font-size: 12px;
     color: @theme-color;
     cursor: pointer;
+}
+.value-select {
+    width: 618px;
+    border: 1px solid @border-color;
+    margin-top: 20px;
+    .select-area {
+        padding: 18px 30px;
+        .title {
+            font-size: 14px;
+            color: #606266;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+        .empty-tip {
+            font-size: 12px;
+            color: #E6A23C;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        // .value-input, .value-box {
+        //     width: 424px;
+        //     min-height: 40px;
+        //     margin-right: 12px;
+        // }
+        .value-box {
+        //     // width: 100%;
+        //     // height: 40px;
+        //     // padding-left: 10px;
+        //     // box-sizing: border-box;
+        //     // border: 1px solid @border-color;
+        //     // border-radius: 5px;
+        //     display: flex;
+        //     width: 600px;
+        //     // align-items: center;
+        //     flex-wrap: wrap;
+            display: flex;
+            .value-item {
+                // width: 48px;
+                display: inline-block;
+                display: flex;
+                align-items: center;
+                padding: 0 12px;
+                height: 24px;
+                border-radius: 24px;
+                border: 1px solid #A3D0FD;
+                color: @theme-color;
+                font-size: 12px;
+                background: #F2F6FC;
+                margin-right: 12px;
+                margin-bottom: 12px;
+                font-weight: bold;
+                .delete-btn {
+                    font-size: 16px;
+                    color: #A3D0FD;
+                    transform: rotate(45deg);
+                    margin-left: 8px;
+                }
+            }
+        }
+        .checkbox-container {
+            display: flex;
+            .checkbox {
+                margin-bottom: 18px;
+            }
+        }
+    } 
+    .btn-row {
+        height: 100%;
+        padding: 12px 30px;
+        border-top: 1px solid @border-color;
+    }
 }
     
 </style>
