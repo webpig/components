@@ -8,7 +8,10 @@
                 <div class="specification-item border-top" @click="showAddModal">+ 新增规格名</div>
             </div>
         </div>
-        <div class="add-value" v-if="isShowAddSpecificationValueBtn" @click="clickAddSpecificatioValueBtn">+增加规格值</div>
+        <div class="tags-wrap no-border">
+            <div class="tags-item" v-for="item in currAddedSpecificationValue" :key="item.name">{{item.name}} <div class="delete-btn" @click="delTag(index)">+</div></div>
+            <div class="add-value" v-if="isShowAddSpecificationValueBtn" @click="clickAddSpecificatioValueBtn">+增加规格值</div>
+        </div>
         <el-dialog title="新增规格名" :visible.sync="isShowAddModal" width="30%">
             <el-form :inline="true" :model="form" ref="form">
                 <el-form-item
@@ -32,21 +35,21 @@
                 <div class="empty-tip" v-if="specificationValues.length === 0">暂无规格值！请输入...</div>
                 <div class="checkbox-container" v-if="specificationValues.length">
                     <el-checkbox v-model="checkAll" @change="handleCheckAllChange" class="checkall">全选</el-checkbox>
-                    <el-checkbox-group v-model="currSelectedSpecificationValues" @change="handleCheckedValuesChange" style="margin-bottom: 30px">
+                    <el-checkbox-group v-model="currSelectedSpecificationValues" @change="handleCheckedValuesChange" style="">
                         <el-checkbox v-for="item in specificationValues" :label="item" :key="item" class="checkbox">{{item}}</el-checkbox>
                     </el-checkbox-group>
                 </div>
                 <div style="display:flex">
                     <div class="tags-wrap">
-                        <div class="tags-item" v-for="item in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn">+</div></div>
-                        <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" />
+                        <div class="tags-item" v-for="(item, index) in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn" @click="delTag(index)">+</div></div>
+                        <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" @keydown.delete="delTag"/>
                     </div>
                     <el-button type="primary" :disabled="tempSpecificationValues.length === 0 && !specificationValue " @click="addSpecificatioValue" style="height: 40px">增加规格值</el-button>
                 </div>
             </div>
             <div class="btn-row">
                 <el-button @click="cancelSelectSpecificatioValue">取消</el-button>
-                <el-button type="primary" :disabled="currSelectedSpecificationValues.length === 0">选好了</el-button>
+                <el-button type="primary" :disabled="currSelectedSpecificationValues.length === 0" @click="confirmSelect">选好了</el-button>
             </div>
         </div>
     </div>
@@ -65,20 +68,21 @@ export default {
             isClickedAddValueBtn: false,
             isShowAddModal: false,
             currSelectedSpecificationName: '',
+            currAddedSpecificationValue: [],
             checkAll: false,
             specificationValue: '',
             specificationValues: [],
             tempSpecificationValues: [],
             currSelectedSpecificationValues: [],
-            isShowValuesBox: false
+            isShowValuesBox: false,
+            isOnlyOneChar: false
         }
     },
     created() {
-        console.log(this.specificationList);
     },
     computed: {
         isShowAddSpecificationValueBtn () {
-            return !!this.currSelectedSpecificationName && !this.isClickedSelectBox && !this.isClickedAddValueBtn;
+            return !!this.currSelectedSpecificationName && !this.isClickedSelectBox && !this.isClickedAddValueBtn && this.currAddedSpecificationValue.length <= 18;
         }
     },
     methods: {
@@ -120,7 +124,7 @@ export default {
             if (this.specificationValue && !this.isShowValuesBox) {
                 this.tempSpecificationValues.push(this.specificationValue);
             }
-            this.specificationValues = this.specificationValues.concat(this.tempSpecificationValues);
+            this.specificationValues = [...new Set(this.specificationValues.concat(this.tempSpecificationValues))];
 
             this.specificationValue = '';
             this.tempSpecificationValues = [];
@@ -136,12 +140,33 @@ export default {
 
         },
         keyEnter () {
-            this.tempSpecificationValues.push(this.specificationValue);
-            this.specificationValue = '';
-            console.log(this.specificationValue, this.tempSpecificationValues)
+            if (this.tempSpecificationValues.indexOf(this.specificationValue) === -1 && this.specificationValue) {
+                this.tempSpecificationValues.push(this.specificationValue);
+                this.specificationValue = '';
+            }
         },
         clickValuesBox () {
             // this.
+        },
+        delTag (index) {
+            if (index >= 0) {
+               this.tempSpecificationValues.splice(index, 1);
+            } else if (this.specificationValue === '') {
+                this.tempSpecificationValues.pop(); 
+            }
+        },
+        confirmSelect () {
+            this.specificationValues.forEach(item => {
+                if (this.currAddedSpecificationValue.map(item => item.name) !== item) {
+                    this.currAddedSpecificationValue.push({
+                        name: item,
+                        img: ''
+                    })
+                }
+            });
+            console.log(this.currAddedSpecificationValue)
+            this.isClickedSelectBox = false;
+            this.isClickedAddValueBtn = false;
         }
     }
 }
@@ -151,9 +176,10 @@ export default {
 
 @border-color: #d8d8d8;
 @theme-color: #0486FE;
+
 .tags-wrap {
     width: 424px;
-    padding: 6px 10px;
+    padding: 8px 10px;
     min-height: 40px;
     box-sizing: border-box;
     border: 1px solid @border-color;
@@ -172,13 +198,36 @@ export default {
         font-size: 12px;
         background: #F2F6FC;
         margin-right: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         font-weight: bold;
         .delete-btn {
             font-size: 16px;
             color: #A3D0FD;
             transform: rotate(45deg);
             margin-left: 8px;
+            cursor: pointer;
+        }
+    }
+    &.no-border {
+        width: 800px;
+        border: none;
+        padding: 0;
+        margin: 20px 0;
+        .tags-item {
+            background: #fff;
+            border-color: @border-color;
+            color: #999;
+            &:hover {
+                border-color: #A3D0FD;
+                color: @theme-color;
+                background: #F2F6FC;
+                .delete-btn {
+                    color: #A3D0FD;
+                }
+            }
+        }
+        .delete-btn {
+            color: #999;
         }
     }
     .value-input {
@@ -240,6 +289,8 @@ export default {
         font-size: 14px;
         color: #333;
         padding-top: 8px;
+        background: #fff;
+        z-index: 99999;
         .specification-item {
             height: 36px;
             line-height: 36px;
@@ -258,10 +309,10 @@ export default {
     }
 }
 .add-value {
-    margin-top: 20px;
     font-size: 12px;
     color: @theme-color;
     cursor: pointer;
+    // padding: 3px;
 }
 .value-select {
     width: 618px;
@@ -323,6 +374,7 @@ export default {
         }
         .checkbox-container {
             display: flex;
+            margin-bottom: 10px;
             .checkbox {
                 margin-bottom: 18px;
             }
