@@ -2,7 +2,12 @@
   <div id="app">
     <!-- <HelloWorld/> -->
     <!-- <List/> -->
-    <Sku :specificationList="specificationList" :addSpecificationName="addSpecificationName" :form="form"/>
+    <Sku
+      :skuList="skuList"
+      @add-sku-name="addSpecificationName"
+      @add-sku-value="addSpecificationValue"
+      @confirm="confirmSelect"
+    />
   </div>
 </template>
 
@@ -18,25 +23,38 @@ export default {
   },
   data () {
     return {
-      specificationList: [{
+      // 可选的规格列表，
+      skuList: [{
         name: '尺寸',
-        values: []
+        values: ['21寸', '22寸'],
+        checkedValues: []
       }, {
         name: '颜色',
-        values: []
+        values: ['蓝色', '红色'],
+        checkedValues: []
       }],
-      form: {
-        specificationName: ''
-      }
     }
   },
   methods: {
-    addSpecificationName () {
-      this.specificationList.push({
-        name: this.form.specificationName,
-        values: []
+    addSpecificationName (val) {
+      console.log(val)
+      this.skuList.push({
+        name: val,
+        values: [],
+        checkedValues: []
       });
     },
+    addSpecificationValue (data) {
+      console.log(data);
+      this.skuList.forEach(item => {
+        if (item.name === data.name) {
+          item.values = data.values;
+        }
+      });
+    },
+    confirmSelect (data) {
+      console.log(data);
+    }
   }
 }
 </script>

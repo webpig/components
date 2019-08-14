@@ -1,22 +1,45 @@
 <template>
     <div class="sku">
         <div class="select-container">
-            <div :class="{'select-box': true, 'active': isClickedSelectBox, 'selected': !!currSelectedSpecificationName}" @click="clickSelectBox">{{currSelectedSpecificationName || '选择/新增规格名'}}</div>
-            <div class="specification-list" v-if="isClickedSelectBox">
-                <div class="specification-item empty" v-if="specificationList.length === 0">暂无规格</div>
-                <div class="specification-item" v-for="item in specificationList" :key="item.name" @click="selectSpecificationName(item.name)">{{item.name}}</div>
+            <div :class="{'select-box': true, 'active': isShowSelectBox, 'selected': !!currSelectItem.name}" @click="clickSelectBox">{{currSelectItem.name || '选择/新增规格名'}}</div>
+            <div class="specification-list" v-if="isShowSelectBox">
+                <div class="specification-item empty" v-if="skuList.length === 0">暂无规格</div>
+                <div class="specification-item" v-for="item in skuList" :key="item.name" @click="selectSpecificationName(item)">{{item.name}}</div>
                 <div class="specification-item border-top" @click="showAddModal">+ 新增规格名</div>
+            </div>
+            <div class="value-select" v-if="isShowSelectValueModal && !isShowSelectBox">
+                <div class="select-area">
+                    <div class="title">选择{{currSelectItem.name || '规格值'}}</div>
+                    <div class="empty-tip" v-if="currSelectItem.values.length === 0">暂无规格值！请输入...</div>
+                    <div class="checkbox-container" v-if="currSelectItem.values.length > 0">
+                        <el-checkbox v-model="checkAll" @change="handleCheckAllChange" class="checkall">全选</el-checkbox>
+                        <el-checkbox-group v-model="tempCheckedValues" @change="handleCheckedValuesChange" style="">
+                            <el-checkbox v-for="item in currSelectItem.values" :label="item" :key="item" class="checkbox">{{item}}</el-checkbox>
+                        </el-checkbox-group>
+                    </div>
+                    <div style="display:flex">
+                        <div class="tags-wrap">
+                            <div class="tags-item" v-for="(item, index) in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn" @click="delTag(index)">+</div></div>
+                            <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" @keydown.delete="delTag"/>
+                        </div>
+                        <el-button type="primary" :disabled="tempSpecificationValues.length === 0 && !specificationValue " @click="addSpecificatioValue" style="height: 40px">增加规格值</el-button>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <el-button @click="cancelSelectSpecificatioValue">取消</el-button>
+                    <el-button type="primary" :disabled="tempCheckedValues.length === 0" @click="confirmSelect">选好了</el-button>
+                </div>
             </div>
         </div>
         <div class="tags-wrap no-border">
-            <div class="tags-item" v-for="item in currAddedSpecificationValue" :key="item.name">{{item.name}} <div class="delete-btn" @click="delTag(index)">+</div></div>
+            <div class="tags-item" v-for="(item, index) in currSelectItem.checkedValues" :key="item">{{item}} <div class="delete-btn" @click="delValue(index)">+</div></div>
             <div class="add-value" v-if="isShowAddSpecificationValueBtn" @click="clickAddSpecificatioValueBtn">+增加规格值</div>
         </div>
         <el-dialog title="新增规格名" :visible.sync="isShowAddModal" width="30%">
             <el-form :inline="true" :model="form" ref="form">
                 <el-form-item
                     label="规格名"
-                    prop="specificationName"
+                    :prop="form.specificationName"
                     label-width="100px"
                     :rules="{ 
                         required: true, message: '请输入规格名', trigger: 'blur'
@@ -29,65 +52,46 @@
                 <el-button type="primary" @click="confirmAdd('form')">确 定</el-button>
             </div>
         </el-dialog>
-        <div class="value-select" v-if="isClickedAddValueBtn && !isClickedSelectBox">
-            <div class="select-area">
-                <div class="title">选择{{currSelectedSpecificationName || '规格值'}}</div>
-                <div class="empty-tip" v-if="specificationValues.length === 0">暂无规格值！请输入...</div>
-                <div class="checkbox-container" v-if="specificationValues.length">
-                    <el-checkbox v-model="checkAll" @change="handleCheckAllChange" class="checkall">全选</el-checkbox>
-                    <el-checkbox-group v-model="currSelectedSpecificationValues" @change="handleCheckedValuesChange" style="">
-                        <el-checkbox v-for="item in specificationValues" :label="item" :key="item" class="checkbox">{{item}}</el-checkbox>
-                    </el-checkbox-group>
-                </div>
-                <div style="display:flex">
-                    <div class="tags-wrap">
-                        <div class="tags-item" v-for="(item, index) in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn" @click="delTag(index)">+</div></div>
-                        <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" @keydown.delete="delTag"/>
-                    </div>
-                    <el-button type="primary" :disabled="tempSpecificationValues.length === 0 && !specificationValue " @click="addSpecificatioValue" style="height: 40px">增加规格值</el-button>
-                </div>
-            </div>
-            <div class="btn-row">
-                <el-button @click="cancelSelectSpecificatioValue">取消</el-button>
-                <el-button type="primary" :disabled="currSelectedSpecificationValues.length === 0" @click="confirmSelect">选好了</el-button>
-            </div>
-        </div>
+        
     </div>
 </template>
 
 <script>
 export default {
     props: {
-        'specificationList': Array,
-        'addSpecificationName': Function,
-        'form': Object
+        'skuList': Array,
+        // 'addSpecificationName': Function,
+        // 'form': Object
     },
     data () {
         return {
-            isClickedSelectBox: false,
-            isClickedAddValueBtn: false,
+            isShowSelectBox: false,
+            isShowSelectValueModal: false,
             isShowAddModal: false,
-            currSelectedSpecificationName: '',
             currAddedSpecificationValue: [],
             checkAll: false,
+            currSelectItem: {},
             specificationValue: '',
-            specificationValues: [],
+            // specificationValues: [],
             tempSpecificationValues: [],
-            currSelectedSpecificationValues: [],
+            // currSelectedSpecificationValues: [],
             isShowValuesBox: false,
-            isOnlyOneChar: false
+            tempCheckedValues: [],
+            form: {
+                specificationName: ''
+            }
         }
     },
     created() {
     },
     computed: {
         isShowAddSpecificationValueBtn () {
-            return !!this.currSelectedSpecificationName && !this.isClickedSelectBox && !this.isClickedAddValueBtn && this.currAddedSpecificationValue.length <= 18;
-        }
+            return !!this.currSelectItem.name && !this.isShowSelectBox && !this.isShowSelectValueModal && this.currAddedSpecificationValue.length <= 18;
+        },
     },
     methods: {
         clickSelectBox () {
-            this.isClickedSelectBox = !this.isClickedSelectBox;
+            this.isShowSelectBox = !this.isShowSelectBox;
         },
         showAddModal () {
             this.isShowAddModal = true;
@@ -100,41 +104,68 @@ export default {
             this.hideAddModal();
         },
         confirmAdd (formName) {
+            const names = this.skuList.map(item => item.name);
+
             this.$refs[formName].validate((valid) => {
                 if (valid) {
-                    this.addSpecificationName();
-                    this.hideAddModal();
+                    if (names.indexOf(this.form.specificationName) === -1) {
+                        this.$emit('add-sku-name', this.form.specificationName);
+                        this.hideAddModal();
+                    } else {
+                        this.$message({
+                            message: '已有该规格名，请重新编辑！',
+                            type: 'warning'
+                        });
+                    }
                 } else {
                     return false;
                 }
             });
         },
-        selectSpecificationName (specificationName) {
-            this.currSelectedSpecificationName = specificationName;
-            this.isClickedSelectBox = false;
+        selectSpecificationName (item) {
+            this.currSelectItem = item;
+            this.isShowSelectBox = false;
+            this.checkAll = false;
+            this.currSelectItem.checkedValues = [];
+            this.currAddedSpecificationValue = [];
+            this.tempCheckedValues = [];
         },
         clickAddSpecificatioValueBtn () {
-            this.isClickedAddValueBtn = true;
+            this.isShowSelectValueModal = true;
+            this.tempCheckedValues = this.currSelectItem.checkedValues;
+            this.checkAll = this.currSelectItem.values.length === this.tempCheckedValues.length;
         },
         cancelSelectSpecificatioValue () {
-            this.isClickedAddValueBtn = false;
+            this.isShowSelectValueModal = false;
             this.specificationValue = '';
+            this.checkedValues
         }, 
         addSpecificatioValue () {
+            const len = this.currSelectItem.values.length;
+
             if (this.specificationValue && !this.isShowValuesBox) {
                 this.tempSpecificationValues.push(this.specificationValue);
             }
-            this.specificationValues = [...new Set(this.specificationValues.concat(this.tempSpecificationValues))];
+            // this.currSelectItem.values = [...new Set(this.currSelectItem.values.concat(this.tempSpecificationValues))];
+
+            this.$emit('add-sku-value', {
+                name: this.currSelectItem.name,
+                values: [...new Set(this.currSelectItem.values.concat(this.tempSpecificationValues))]
+            });
 
             this.specificationValue = '';
             this.tempSpecificationValues = [];
+
+            if (this.currSelectItem.values.length > len) {
+                this.checkAll = false;
+            }
         },
         handleCheckAllChange (val) {
-            this.currSelectedSpecificationValues = val ? this.specificationValues : [];
+            this.tempCheckedValues = val ? this.currSelectItem.values.slice() : [];
         },
         handleCheckedValuesChange (val) {
             let checkedCount = val.length;
-            this.checkAll = checkedCount === this.specificationValues.length;
+            this.checkAll = checkedCount === this.currSelectItem.values.length;
         },
         focus () {
 
@@ -155,19 +186,15 @@ export default {
                 this.tempSpecificationValues.pop(); 
             }
         },
+        delValue (index) {
+            this.currSelectItem.checkedValues.splice(index, 1);
+        },
         confirmSelect () {
-            this.specificationValues.forEach(item => {
-                if (this.currAddedSpecificationValue.map(item => item.name) !== item) {
-                    this.currAddedSpecificationValue.push({
-                        name: item,
-                        img: ''
-                    })
-                }
-            });
-            console.log(this.currAddedSpecificationValue)
-            this.isClickedSelectBox = false;
-            this.isClickedAddValueBtn = false;
-        }
+            this.currSelectItem.checkedValues = this.tempCheckedValues;
+            this.isShowSelectBox = false;
+            this.isShowSelectValueModal = false;
+            this.$emit('confirm', this.currSelectItem);
+        }, 
     }
 }
 </script>
@@ -180,7 +207,7 @@ export default {
 .tags-wrap {
     width: 424px;
     padding: 8px 10px;
-    min-height: 40px;
+    // min-height: 40px;
     box-sizing: border-box;
     border: 1px solid @border-color;
     margin-right: 20px;
@@ -212,11 +239,12 @@ export default {
         width: 800px;
         border: none;
         padding: 0;
-        margin: 20px 0;
+        // margin: 20px 0;
         .tags-item {
             background: #fff;
             border-color: @border-color;
             color: #999;
+            margin: 20px 12px 20px 0;
             &:hover {
                 border-color: #A3D0FD;
                 color: @theme-color;
@@ -290,7 +318,7 @@ export default {
         color: #333;
         padding-top: 8px;
         background: #fff;
-        z-index: 99999;
+        z-index: 1;
         .specification-item {
             height: 36px;
             line-height: 36px;
@@ -313,11 +341,15 @@ export default {
     color: @theme-color;
     cursor: pointer;
     // padding: 3px;
+    margin-top: 24px;
 }
 .value-select {
+    position: absolute;
     width: 618px;
     border: 1px solid @border-color;
-    margin-top: 20px;
+    top: 50px;
+    z-index: 1;
+    background: #fff;
     .select-area {
         padding: 18px 30px;
         .title {
