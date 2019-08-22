@@ -1,7 +1,11 @@
 <template>
     <div class="sku">
         <div class="select-container">
-            <div :class="{'select-box': true, 'active': isShowSelectBox, 'selected': !!currSelectItem.name}" @click="clickSelectBox">{{currSelectItem.name || '选择/新增规格名'}}</div>
+            <div style="display:flex;align-items:center">
+                <div :class="{'select-box': true, 'active': isShowSelectBox, 'selected': !!currSelectItem.name}" @click="clickSelectBox">{{currSelectItem.name || '选择/新增规格名'}}</div>
+                <el-checkbox v-model="isAddImg" style="margin-left:20px" v-if="isCanAddImg && currSelectItem.checkedValues.length > 0">添加规格图片</el-checkbox>
+                <span style="font-size:12px;color:#909399;font-weight:bold;" v-if="currSelectItem.checkedValues.length > 0 && isAddImg">不同规格产品会展示不同的图片，建议尺寸：640 * 640 像素</span>
+            </div>
             <div class="specification-list" v-if="isShowSelectBox">
                 <div class="specification-item empty" v-if="skuList.length === 0">暂无规格</div>
                 <div class="specification-item" v-for="item in skuList" :key="item.name" @click="selectSpecificationName(item)">{{item.name}}</div>
@@ -14,13 +18,13 @@
                     <div class="checkbox-container" v-if="currSelectItem.values.length > 0">
                         <el-checkbox v-model="checkAll" @change="handleCheckAllChange" class="checkall">全选</el-checkbox>
                         <el-checkbox-group v-model="tempCheckedValues" @change="handleCheckedValuesChange" style="">
-                            <el-checkbox v-for="item in currSelectItem.values" :label="item" :key="item" class="checkbox">{{item}}</el-checkbox>
+                            <el-checkbox v-for="item in currSelectItem.values" :label="item" :key="item.text" class="checkbox">{{item.text}}</el-checkbox>
                         </el-checkbox-group>
                     </div>
                     <div style="display:flex">
-                        <div class="tags-wrap">
+                        <div :class="[{'HL-border': isFocus},'tags-wrap']">
                             <div class="tags-item" v-for="(item, index) in tempSpecificationValues" :key="item">{{item}} <div class="delete-btn" @click="delTag(index)">+</div></div>
-                            <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" @keydown.delete="delTag"/>
+                            <input v-model.trim="specificationValue" :placeholder="tempSpecificationValues.length === 0 ? '输入规格值，输入多个就用回车键隔开' : ''" :class="{'value-input': true, 'smaller-width': tempSpecificationValues.length > 0}" @keyup.enter="keyEnter" @keydown.delete="delTag" @focus="focus" @blur="blur"/>
                         </div>
                         <el-button type="primary" :disabled="tempSpecificationValues.length === 0 && !specificationValue " @click="addSpecificatioValue" style="height: 40px">增加规格值</el-button>
                     </div>
@@ -32,7 +36,18 @@
             </div>
         </div>
         <div class="tags-wrap no-border">
-            <div class="tags-item" v-for="(item, index) in currSelectItem.checkedValues" :key="item">{{item}} <div class="delete-btn" @click="delValue(index)">+</div></div>
+            <div style="margin-right:12px" v-for="(item, index) in currSelectItem.checkedValues" :key="item.text">
+                <div class="tags-item">{{item.text}} <div class="delete-btn" @click="delValue(index)">+</div></div>
+                <el-upload
+                    class="avatar-uploader"
+                    action="https://jsonplaceholder.typicode.com/posts/"
+                    :show-file-list="false"
+                    :on-success="handleUploadSuccess"
+                    v-if="isAddImg">
+                    <img v-if="item.imageUrl" :src="item.imageUrl" class="avatar" @click="setCurrItem(item)">
+                    <i v-else class="el-icon-plus avatar-uploader-icon" @click="setCurrItem(item)"></i>
+                </el-upload>
+            </div>
             <div class="add-value" v-if="isShowAddSpecificationValueBtn" @click="clickAddSpecificatioValueBtn">+增加规格值</div>
         </div>
         <el-dialog title="新增规格名" :visible.sync="isShowAddModal" width="30%">
@@ -60,6 +75,7 @@
 export default {
     props: {
         'skuList': Array,
+        'isCanAddImg': Boolean
         // 'addSpecificationName': Function,
         // 'form': Object
     },
@@ -70,26 +86,49 @@ export default {
             isShowAddModal: false,
             currAddedSpecificationValue: [],
             checkAll: false,
-            currSelectItem: {},
+            currSelectItem: {
+                name: '',
+                values: [],
+                checkedValues: []
+            },
             specificationValue: '',
-            // specificationValues: [],
             tempSpecificationValues: [],
-            // currSelectedSpecificationValues: [],
             isShowValuesBox: false,
             tempCheckedValues: [],
             form: {
                 specificationName: ''
-            }
+            },
+            isAddImg: false,
+            isFocus: false,
+            currValue: ''
         }
     },
     created() {
     },
     computed: {
         isShowAddSpecificationValueBtn () {
-            return !!this.currSelectItem.name && !this.isShowSelectBox && !this.isShowSelectValueModal && this.currAddedSpecificationValue.length <= 18;
+            return !!this.currSelectItem.name && !this.isShowSelectBox && !this.isShowSelectValueModal && this.currSelectItem.checkedValues.length < 18;
         },
     },
     methods: {
+        focus () {
+            this.isFocus = true;
+        },
+        blur () {
+            this.isFocus = false;
+        },
+        setCurrItem (item) {
+            this.currValue = item.text;
+        },
+        handleUploadSuccess (res, file) {
+            let imageUrl = URL.createObjectURL(file.raw);
+            this.currSelectItem.checkedValues.forEach((item, index) => {
+                if (item.text === this.currValue) {
+                    this.currSelectItem.checkedValues[index].imageUrl = imageUrl;
+                }
+            });
+            this.handleChange();
+        },
         clickSelectBox () {
             this.isShowSelectBox = !this.isShowSelectBox;
         },
@@ -138,7 +177,7 @@ export default {
         cancelSelectSpecificatioValue () {
             this.isShowSelectValueModal = false;
             this.specificationValue = '';
-            this.checkedValues
+            // this.checkedValues
         }, 
         addSpecificatioValue () {
             const len = this.currSelectItem.values.length;
@@ -146,11 +185,19 @@ export default {
             if (this.specificationValue && !this.isShowValuesBox) {
                 this.tempSpecificationValues.push(this.specificationValue);
             }
-            // this.currSelectItem.values = [...new Set(this.currSelectItem.values.concat(this.tempSpecificationValues))];
 
+            let arr = this.currSelectItem.values.slice(), values = this.currSelectItem.values.map(item => item.text);
+            this.tempSpecificationValues.forEach(item => {
+                if (values.indexOf(item) === -1) {
+                    arr.push({
+                        text: item,
+                        imageUrl: ''
+                    });
+                }
+            });
             this.$emit('add-sku-value', {
                 name: this.currSelectItem.name,
-                values: [...new Set(this.currSelectItem.values.concat(this.tempSpecificationValues))]
+                values: arr
             });
 
             this.specificationValue = '';
@@ -167,11 +214,9 @@ export default {
             let checkedCount = val.length;
             this.checkAll = checkedCount === this.currSelectItem.values.length;
         },
-        focus () {
-
-        },
         keyEnter () {
-            if (this.tempSpecificationValues.indexOf(this.specificationValue) === -1 && this.specificationValue) {
+            let values = this.currSelectItem.values.map(item => item.text);
+            if (values.indexOf(this.specificationValue) === -1 && this.tempSpecificationValues.indexOf(this.specificationValue) === -1 && this.specificationValue) {
                 this.tempSpecificationValues.push(this.specificationValue);
                 this.specificationValue = '';
             }
@@ -188,13 +233,17 @@ export default {
         },
         delValue (index) {
             this.currSelectItem.checkedValues.splice(index, 1);
+            this.handleChange();
         },
         confirmSelect () {
             this.currSelectItem.checkedValues = this.tempCheckedValues;
             this.isShowSelectBox = false;
             this.isShowSelectValueModal = false;
-            this.$emit('confirm', this.currSelectItem);
+            this.handleChange();
         }, 
+        handleChange () {
+            this.$emit('change', this.currSelectItem);
+        }
     }
 }
 </script>
@@ -214,6 +263,9 @@ export default {
     border-radius: 5px;
     display: flex;
     flex-wrap: wrap;
+    &.HL-border {
+        border-color: @theme-color;
+    }
     .tags-item  {
         display: flex;
         align-items: center;
@@ -239,12 +291,11 @@ export default {
         width: 800px;
         border: none;
         padding: 0;
-        // margin: 20px 0;
         .tags-item {
             background: #fff;
             border-color: @border-color;
             color: #999;
-            margin: 20px 12px 20px 0;
+            margin: 20px 0 12px 0;
             &:hover {
                 border-color: #A3D0FD;
                 color: @theme-color;
@@ -364,22 +415,7 @@ export default {
             font-weight: bold;
             margin-bottom: 30px;
         }
-        // .value-input, .value-box {
-        //     width: 424px;
-        //     min-height: 40px;
-        //     margin-right: 12px;
-        // }
         .value-box {
-        //     // width: 100%;
-        //     // height: 40px;
-        //     // padding-left: 10px;
-        //     // box-sizing: border-box;
-        //     // border: 1px solid @border-color;
-        //     // border-radius: 5px;
-        //     display: flex;
-        //     width: 600px;
-        //     // align-items: center;
-        //     flex-wrap: wrap;
             display: flex;
             .value-item {
                 // width: 48px;
@@ -418,6 +454,32 @@ export default {
         border-top: 1px solid @border-color;
     }
 }
+.avatar-uploader {
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+  }
+  .avatar-uploader:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 20px;
+    color: #8c939d;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+  }
+  .avatar {
+    width: 60px;
+    height: 60px;
+    display: block;
+  }
     
 </style>
 

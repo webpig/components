@@ -4,9 +4,10 @@
     <!-- <List/> -->
     <Sku
       :skuList="skuList"
+      :isCanAddImg="isCanAddImg"
       @add-sku-name="addSpecificationName"
       @add-sku-value="addSpecificationValue"
-      @confirm="confirmSelect"
+      @change="change"
     />
   </div>
 </template>
@@ -26,13 +27,26 @@ export default {
       // 可选的规格列表，
       skuList: [{
         name: '尺寸',
-        values: ['21寸', '22寸'],
+        values: [{
+          text: '21寸',
+          imageUrl: ''
+        }, {
+          text: '22寸',
+          imageUrl: ''
+        }],
         checkedValues: []
       }, {
         name: '颜色',
-        values: ['蓝色', '红色'],
+        values: [{
+          text: '蓝色',
+          imageUrl: ''
+        }, {
+          text: '红色',
+          imageUrl: ''
+        }],
         checkedValues: []
       }],
+      isCanAddImg: true
     }
   },
   methods: {
@@ -52,7 +66,7 @@ export default {
         }
       });
     },
-    confirmSelect (data) {
+    change (data) {
       console.log(data);
     }
   }
