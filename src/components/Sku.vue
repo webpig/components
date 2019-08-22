@@ -188,7 +188,7 @@ export default {
 
             let arr = this.currSelectItem.values.slice(), values = this.currSelectItem.values.map(item => item.text);
             this.tempSpecificationValues.forEach(item => {
-                if (values.indexOf(item) === -1) {
+                if (arr.length < 18 && values.indexOf(item) === -1) {
                     arr.push({
                         text: item,
                         imageUrl: ''
