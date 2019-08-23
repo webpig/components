@@ -4,10 +4,8 @@
     <!-- <List/> -->
     <Sku
       :skuList="skuList"
-      :isCanAddImg="isCanAddImg"
       @add-sku-name="addSpecificationName"
       @add-sku-value="addSpecificationValue"
-      @change="change"
     />
   </div>
 </template>
