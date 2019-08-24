@@ -6,6 +6,7 @@
       :skuList="skuList"
       @add-sku-name="addSpecificationName"
       @add-sku-value="addSpecificationValue"
+      @change="change"
     />
   </div>
 </template>
@@ -65,7 +66,7 @@ export default {
       });
     },
     change (data) {
-      console.log(data);
+      console.log('item', data);
     }
   }
 }

@@ -178,7 +178,7 @@ export default {
         },
         clickAddSpecificatioValueBtn () {
             this.isShowSelectValueModal = true;
-            this.tempCheckedValues = this.currSelectItem.checkedValues.slice();
+            this.tempCheckedValues = [...this.currSelectItem.checkedValues];
             this.checkAll = this.currSelectItem.values.length === this.tempCheckedValues.length;
         },
         cancelSelectSpecificatioValue () {
@@ -194,14 +194,10 @@ export default {
                 this.tempSpecificationValues.push(this.specificationValue);
             }
 
-            let arr = this.currSelectItem.values.slice(), values = this.currSelectItem.values.map(item => item.text);
+            let arr = [...this.currSelectItem.values], values = this.currSelectItem.values.map(item => item.text);
             this.tempSpecificationValues.forEach(item => {
                 if (arr.length < 18 && values.indexOf(item) === -1) {
                     arr.push({
-                        text: item,
-                        imageUrl: ''
-                    });
-                    this.tempCheckedValues.push({
                         text: item,
                         imageUrl: ''
                     });
@@ -224,7 +220,6 @@ export default {
             this.tempCheckedValues = val ? this.currSelectItem.values.slice() : [];
         },
         handleCheckedValuesChange (val) {
-            console.log(val)
             let checkedCount = val.length;
             this.checkAll = checkedCount === this.currSelectItem.values.length;
         },
