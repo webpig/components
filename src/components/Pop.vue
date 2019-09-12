@@ -1,12 +1,14 @@
 <template>
     <transition name="fade">
-        <div id="pop" v-show="visible">
-            <header class="header">
-                <div class="icon-close" @click="close"></div>
-                <div>{{title}}</div>
-                <el-button type="primary" class="save-btn" @click="save">保存</el-button>
-            </header>
-            <slot></slot>
+        <div class="mask" v-show="visible">
+            <div class="pop">
+                <header class="header">
+                    <div class="icon-close" @click="close"></div>
+                    <div>{{title}}</div>
+                    <el-button type="primary" class="save-btn" @click="save">保存</el-button>
+                </header>
+                <slot></slot>
+            </div>
         </div>
     </transition>
 </template>
@@ -50,47 +52,54 @@ export default {
         transform: translateX(100%);
     }
 
-    #pop {
+    .mask {
         position: absolute;
         top: 0;
+        left: 0;
+        bottom: 0;
         right: 0;
-        width: 80%;
-        height: 100%;
-        background: #fff;
-        border-left: 1px solid @border-color;
-        box-shadow: -1px 0 4px @border-color;
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 0 30px;
-            height: 72px;
-            border-bottom: 1px solid @border-color;
-            font-size: 18px;
-            color: #303133;
-            font-weight: bold;
-            .icon-close {
-                position: relative;
-                width: 20px;
-                height: 20px;
-                border: 2px solid @close-icon-color;
-                border-radius: $width;
-                margin-right: 12px;
-                &::before, &::after {
-                    content: '';
-                    position: absolute;
-                    width: 2px;
-                    height: 10px;
-                    left: 50%;
-                    top: 50%;
-                    transform: translate(-50%, -50%) rotate(45deg);
-                    background: @close-icon-color;
+        .pop {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80%;
+            height: 100%;
+            background: #fff;
+            border-left: 1px solid @border-color;
+            box-shadow: -1px 0 4px @border-color;
+            .header {
+                display: flex;
+                align-items: center;
+                padding: 0 30px;
+                height: 72px;
+                border-bottom: 1px solid @border-color;
+                font-size: 18px;
+                color: #303133;
+                font-weight: bold;
+                .icon-close {
+                    position: relative;
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid @close-icon-color;
+                    border-radius: $width;
+                    margin-right: 12px;
+                    &::before, &::after {
+                        content: '';
+                        position: absolute;
+                        width: 2px;
+                        height: 10px;
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%) rotate(45deg);
+                        background: @close-icon-color;
+                    }
+                    &::after {
+                        transform: translate(-50%, -50%) rotate(-45deg);
+                    }
                 }
-                &::after {
-                    transform: translate(-50%, -50%) rotate(-45deg);
+                .save-btn {
+                    margin-left: auto;
                 }
-            }
-            .save-btn {
-                margin-left: auto;
             }
         }
     }
