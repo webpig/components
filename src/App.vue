@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <router-view></router-view>
     <!-- <HelloWorld/> -->
     <!-- <List/> -->
     <!-- <Sku
@@ -16,7 +17,7 @@
       @del="del"
       tip="提示语">
     </Tree> -->
-    <el-button @click="open">打开</el-button>
+    <!-- <el-button @click="open">打开</el-button>
     <Pop
       :visible.sync="isShow"
       title="新建拜访"
@@ -25,7 +26,7 @@
         <el-input placeholder="输入"></el-input>
         <el-button style="margin-top:20px">提交</el-button>
       </el-form>
-    </Pop>
+    </Pop> -->
   </div>
 </template>
 
@@ -101,6 +102,11 @@ export default {
     }
   },
   methods: {
+    goToPop () {
+      this.$router.push({
+        path: 'Link'
+      })
+    },
     open () {
       this.isShow = true
     },
@@ -195,6 +201,5 @@ export default {
 } */
 #app {
   padding: 30px;
-  width: 100px;
 }
 </style>
