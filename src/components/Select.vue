@@ -11,9 +11,9 @@
             </div>
         </div>
         <el-dialog :title="addBtnText" :visible.sync="isShowAddModal" width="30%">
-            <div>
+            <div style="display:flex;align-items:center">
                 <label for="input">{{inputLabel}}：</label>
-                <el-input v-model="inputValue" autocomplete="off" maxlength="10" show-word-limit style="width:300px" id="input"></el-input>
+                <el-input v-model="inputValue" autocomplete="off" maxlength="10" show-word-limit style="width:260px" id="input" clearable></el-input>
             </div>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="cancel">取 消</el-button>
