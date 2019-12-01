@@ -42,14 +42,14 @@ export default {
       console.log(val)
       this.data.push({
         name: val,
-        children: []
+        // children: []
       })
     },
     addChild (val) {
       console.log(val)
-      // if (!this.data[val.index].children) {
-      //   this.data[val.index].children = []
-      // }
+      if (!this.data[val.index].children) {
+        this.$set(this.data[val.index], 'children', [])
+      }
       this.data[val.index].children.push({
         name: '新增的客户',
         address: '新增的客户地址'

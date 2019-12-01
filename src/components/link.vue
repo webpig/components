@@ -2,6 +2,7 @@
   <div id="link">
     <div @click="goToExample('PopExample')" class="link">滑窗组件示例</div>
     <div @click="goToExample('SingleTreeExample')" class="link">单级树组件示例</div>
+    <div @click="goToExample('SelectExample')" class="link">选择器组件示例</div>
   </div>
 </template>
 
