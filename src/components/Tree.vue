@@ -125,7 +125,7 @@ export default {
             })
         },
         edit (val) {
-            this.$emit('add-child', val)
+            this.$emit('edit', val)
         },
         addChild (val) {
             this.$emit('add-child', val)
